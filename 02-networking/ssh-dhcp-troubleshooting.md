@@ -32,6 +32,10 @@ ip -4 addr show eth0
 
 The Ethernet connection showed `LOWER_UP`, which meant the physical connection was detected.
 
+![Ethernet interface showing LOWER_UP](screenshots/01-ethernet-connection.png)
+
+This screenshot shows that my Raspberry Pi detected a physical Ethernet connection.
+
 However, the Pi wasn't receiving an IPv4 address.
 
 I also checked the network devices:
@@ -53,13 +57,6 @@ Things I checked:
 - Internet Connection Sharing service was running.
 - DHCP Client service was running.
 - Ethernet had the address `192.168.137.1`.
-
-### Screenshot Evidence
-
-![Ethernet interface showing LOWER_UP](screenshots/01-ethernet-connection.png)
-
-This screenshot shows that my Raspberry Pi detected a physical Ethernet connection.
-
 
 I also checked Windows network information using:
 
