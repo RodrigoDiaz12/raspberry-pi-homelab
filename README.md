@@ -92,7 +92,6 @@ raspberry-pi-homelab/
 ├── 02-networking/
 ├── 03-windows-administration/
 └── 04-cybersecurity/
-```
 
 ## Documentation
 
