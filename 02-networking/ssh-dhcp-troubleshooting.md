@@ -119,6 +119,7 @@ And checked whether DNS was working:
 ```bash
 ping -c 4 google.com
 ```
+I did not get a response from google but I did HTTPS tests which confirmed website access!
 
 I also tested another website:
 
