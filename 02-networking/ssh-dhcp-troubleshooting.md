@@ -2,9 +2,9 @@
 
 ## Overview
 
-During my Raspberry Pi 5 homelab setup, I ran into an issue where I could no longer connect to my Raspberry Pi through SSH.
+During my Raspberry Pi 5 homelab setup, I ran into an issue where I wasn't able to connect to my Raspberry Pi through SSH.
 
-At first, I thought something went wrong when I installed the Raspberry Pi into its case. After troubleshooting, I discovered that the problem was related to the network connection and Windows Internet Connection Sharing.
+I discovered that the problem was related to the network connection and Windows Internet Connection Sharing.
 
 My Windows 11 PC connects to the internet through Wi-Fi and shares that connection with my Raspberry Pi through Ethernet using my TP-Link Omada ES208G switch.
 
