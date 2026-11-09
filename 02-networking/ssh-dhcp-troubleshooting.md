@@ -1,316 +1,148 @@
-# SSH and Network Connectivity Troubleshooting
+# Raspberry Pi SSH and Network Troubleshooting
 
-## Project Overview
+## Overview
 
-This project documents troubleshooting a Raspberry Pi 5 that lost SSH connectivity.
+During my Raspberry Pi 5 homelab setup, I ran into an issue where I could no longer connect to my Raspberry Pi through SSH.
 
-The Raspberry Pi was connected to a TP-Link Omada ES208G managed switch. My Windows 11 PC provided internet access through Wi-Fi using Internet Connection Sharing (ICS).
+At first, I thought something went wrong when I installed the Raspberry Pi into its case. After troubleshooting, I discovered that the problem was related to the network connection and Windows Internet Connection Sharing.
 
-The main issues encountered were:
-- SSH connection timeouts.
-- Ethernet DHCP address assignment failures.
-- The Raspberry Pi having no usable IPv4 address.
-- Internet connectivity failures despite a working physical Ethernet link.
+My Windows 11 PC connects to the internet through Wi-Fi and shares that connection with my Raspberry Pi through Ethernet using my TP-Link Omada ES208G switch.
 
-## Network Configuration
+## Problems I Encountered
 
-| Device | Interface | Address |
-|---|---|---|
-| Windows PC | Wi-Fi | `192.168.1.70` |
-| Windows PC | Ethernet | `192.168.137.1` |
-| Raspberry Pi 5 | eth0 | `192.168.137.250` |
-| Default Gateway | Windows Ethernet | `192.168.137.1` |
-| DNS server | Raspberry Pi | `1.1.1.1` |
+- SSH connection kept timing out.
+- My Raspberry Pi wasn't receiving an IP address.
+- DHCP was failing when trying to connect through Ethernet.
+- The Pi could communicate with my PC but couldn't initially access the internet.
+- Internet Connection Sharing wasn't forwarding the connection properly.
 
-The Raspberry Pi temporarily used a static IP address because DHCP through Windows ICS was failing.
+## 1. Checking the Network Connection
 
-## 1. Initial SSH Troubleshooting
+I first checked whether my Raspberry Pi was physically connected to the Ethernet switch.
 
-From Windows PowerShell, I attempted to connect using the hostname:
-
-```powershell
-ssh labadmin@pi-lab.local
-```
-
-The connection timed out.
-
-I also used:
-
-```powershell
-ipconfig
-```
-
-To inspect Windows network adapter addresses, and:
-
-```powershell
-arp -a
-```
-
-To inspect the ARP table and identify devices visible on the local network.
-
-## 2. Raspberry Pi Network Diagnostics
-
-Using the Raspberry Pi's local console, I inspected the Ethernet interface and network management status.
-
-### Commands used
-
-Check network interface status:
+I used these commands:
 
 ```bash
 ip link show eth0
 ```
 
-Check IPv4 address assignment:
-
 ```bash
 ip -4 addr show eth0
 ```
 
-Display all network devices:
+The Ethernet connection showed `LOWER_UP`, which meant the physical connection was detected.
+
+However, the Pi wasn't receiving an IPv4 address.
+
+I also checked the network devices:
 
 ```bash
 nmcli device status
 ```
 
-Check saved network connections:
+The Ethernet connection showed as disconnected.
 
-```bash
-nmcli connection show
-```
+## 2. Troubleshooting Windows
 
-Check NetworkManager service status:
+Since my Raspberry Pi was getting internet through my Windows PC, I checked the Windows network settings.
 
-```bash
-sudo systemctl status NetworkManager --no-pager
-```
+Things I checked:
 
-Inspect recent NetworkManager logs:
+- Ethernet adapter was enabled.
+- Wi-Fi sharing was turned on.
+- Internet Connection Sharing service was running.
+- DHCP Client service was running.
+- Ethernet had the address `192.168.137.1`.
 
-```bash
-sudo journalctl -u NetworkManager -n 30 --no-pager
-```
-
-Check the current routing table:
-
-```bash
-ip route
-```
-
-Display assigned IP addresses:
-
-```bash
-hostname -I
-```
-
-Attempt to connect Ethernet through NetworkManager:
-
-```bash
-sudo nmcli device connect eth0
-```
-
-Restart NetworkManager's networking:
-
-```bash
-sudo nmcli networking off
-sudo nmcli networking on
-```
-
-The Ethernet interface reported a physical link (`LOWER_UP`), but DHCP was failing with an IP configuration error.
-
-## 3. Windows Internet Connection Sharing Diagnostics
-
-Windows was configured to share its Wi-Fi internet connection through its Ethernet adapter.
-
-I inspected Windows services with:
+I also checked Windows network information using:
 
 ```powershell
-Get-Service SharedAccess, Dhcp
+ipconfig
 ```
 
-Both the Internet Connection Sharing service and DHCP Client service were running.
-
-I also inspected network configuration using:
+And:
 
 ```powershell
-Get-NetIPConfiguration
+arp -a
 ```
 
-And checked the Ethernet IPv4 protocol binding:
+These commands helped me check the network adapters and devices visible on my network.
 
-```powershell
-Get-NetAdapterBinding -Name "Ethernet" -ComponentID ms_tcpip
-```
+## 3. Fixing Internet Connection Sharing
 
-To inspect the ICS service configuration:
+After checking the Windows settings, I discovered that Internet Connection Sharing was also enabled on an extra VirtualBox network adapter.
 
-```powershell
-Get-CimInstance Win32_Service -Filter "Name='SharedAccess'" | Select-Object Name, State, StartMode, PathName
-```
+I disabled sharing on that adapter while keeping my main Wi-Fi and Ethernet sharing settings enabled.
 
-Restarted Internet Connection Sharing:
+After doing this, my Raspberry Pi was able to access the internet again.
 
-```powershell
-Restart-Service -Name SharedAccess -Force
-```
+## 4. Setting a Static IP Address
 
-Tested Windows internet connectivity:
+Because DHCP wasn't working properly, I temporarily assigned my Raspberry Pi a static IP address.
 
-```powershell
-ping 8.8.8.8
-```
+I used:
 
-## 4. Inspecting Windows Internet Connection Sharing
+- Raspberry Pi IP: `192.168.137.250`
+- Windows Ethernet IP: `192.168.137.1`
+- Subnet mask: `255.255.255.0`
+- Gateway: `192.168.137.1`
+- DNS: `1.1.1.1`
 
-I used PowerShell's Windows networking COM interface to inspect which adapters had Internet Connection Sharing enabled.
+This allowed me to reconnect to my Raspberry Pi without relying on its hostname.
 
-```powershell
-$share = New-Object -ComObject HNetCfg.HNetShare
+## 5. Testing the Connection
 
-$share.EnumEveryConnection() | ForEach-Object {
-    $props = $share.NetConnectionProps($_)
-    $cfg = $share.INetSharingConfigurationForINetConnection($_)
+I used ping to make sure the devices could communicate.
 
-    [PSCustomObject]@{
-        Name = $props.Name
-        Device = $props.DeviceName
-        SharingEnabled = $cfg.SharingEnabled
-        SharingType = if ($cfg.SharingEnabled) {
-            $cfg.SharingConnectionType
-        } else {
-            "-"
-        }
-    }
-} | Format-Table -AutoSize
-```
-
-The inspection showed that Internet Connection Sharing was also enabled on an extra VirtualBox Host-Only Ethernet adapter named `Ethernet 2`.
-
-I disabled sharing on that extra adapter:
-
-```powershell
-$share = New-Object -ComObject HNetCfg.HNetShare
-
-$conn = $share.EnumEveryConnection() | Where-Object {
-    $share.NetConnectionProps($_).Name -eq "Ethernet 2"
-}
-
-$share.INetSharingConfigurationForINetConnection($conn).DisableSharing()
-```
-
-After disabling sharing on the extra adapter, the Raspberry Pi successfully regained external IP connectivity.
-
-## 5. Configuring a Temporary Static IP Address
-
-Because DHCP was failing, I temporarily assigned a static IP address to the Raspberry Pi using NetworkManager.
-
-First, I tested the proposed address:
-
-```bash
-ping -c 3 192.168.137.250
-```
-
-Then created a static Ethernet connection:
-
-```bash
-sudo nmcli connection add type ethernet ifname eth0 con-name pi-static ipv4.method manual ipv4.addresses 192.168.137.250/24 ipv4.gateway 192.168.137.1 ipv4.dns 1.1.1.1
-```
-
-Activated the connection:
-
-```bash
-sudo nmcli connection up pi-static
-```
-
-This provided the Raspberry Pi with a usable address and allowed SSH access to be restored.
-
-## 6. Connectivity Testing
-
-### Test Raspberry Pi to Windows
+From my Raspberry Pi, I tested the Windows PC:
 
 ```bash
 ping -c 4 192.168.137.1
 ```
 
-### Test Windows to Raspberry Pi
-
-```powershell
-ping 192.168.137.250
-```
-
-### Test external IP connectivity
+I also tested internet connectivity:
 
 ```bash
 ping -c 4 8.8.8.8
 ```
 
-### Test DNS resolution
+And checked whether DNS was working:
 
 ```bash
 ping -c 4 google.com
 ```
 
-Additional DNS test:
+I also tested another website:
 
 ```bash
 ping -c 4 mlb.com
 ```
 
-### Test HTTPS connectivity
-
-```bash
-curl -4 -I --max-time 10 https://www.google.com
-```
-
-```bash
-curl -4 -I --max-time 10 https://www.mlb.com
-```
-
-These tests helped distinguish local network connectivity, external IP connectivity, DNS resolution, and actual HTTPS access.
-
-## 7. Restoring SSH Access
-
-Once the static IP connection was active, I connected from Windows PowerShell using:
+Finally, I tested whether I could reconnect through SSH:
 
 ```powershell
 ssh labadmin@192.168.137.250
 ```
 
-This restored remote access without relying on hostname resolution.
+I was able to reconnect successfully and confirmed that my Raspberry Pi had internet access.
 
-## Final Results
+## What I Learned
 
-- Restored SSH access to the Raspberry Pi.
-- Verified the physical Ethernet link.
-- Identified DHCP address assignment failures.
-- Investigated Windows Internet Connection Sharing.
-- Identified an additional ICS configuration on the VirtualBox Host-Only adapter.
-- Disabled sharing on the extra adapter.
-- Configured a temporary static IP address.
-- Restored internet access.
-- Tested connectivity between Windows and Raspberry Pi.
-- Verified external IP, DNS, and HTTPS connectivity.
+During this troubleshooting process, I learned:
 
-## Skills Demonstrated
+- How to check Ethernet connections on Linux.
+- How IP addresses work between devices.
+- What DHCP does and why devices need an IP address.
+- How Windows Internet Connection Sharing works.
+- How to assign a static IP address.
+- How to use ping to test network connections.
+- How to troubleshoot SSH connection problems.
+- How to identify problems between a computer and a network device.
 
-- Linux network troubleshooting
-- Windows network adapter administration
-- DHCP troubleshooting
-- Static IPv4 configuration
-- NetworkManager
-- Internet Connection Sharing
-- DNS troubleshooting
-- SSH remote administration
-- PowerShell administration
-- Network connectivity testing
-- Technical troubleshooting and documentation
+## Final Result
 
-## Lessons Learned
+I was able to restore SSH access and internet connectivity on my Raspberry Pi.
 
-This troubleshooting experience demonstrated the importance of checking multiple layers of network connectivity.
+The biggest lesson I learned was that having a physical Ethernet connection doesn't necessarily mean a device has a working network connection. DHCP, IP addressing, and internet sharing all need to be configured correctly.
 
-A physical Ethernet link does not guarantee that a device has an IP address, a default gateway, or internet access.
-
-Using tools such as `ip`, `nmcli`, `journalctl`, `ping`, and PowerShell helped isolate the problems and restore connectivity.
-
-The static IP configuration was a temporary workaround. DHCP should be investigated and restored as the long-term configuration before removing the temporary profile.
-
+This was my first major networking troubleshooting experience while building my Raspberry Pi homelab.
