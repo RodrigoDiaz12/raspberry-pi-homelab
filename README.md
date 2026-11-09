@@ -51,7 +51,7 @@ I will document each project with command outputs, screenshots, configurations, 
 
 ### 3. Windows Administration
 
-**Status: Planned**
+**Status: In Progress**
 
 - Windows network adapter configuration.
 - Internet Connection Sharing.
