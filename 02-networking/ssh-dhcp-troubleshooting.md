@@ -34,7 +34,6 @@ The Ethernet connection showed `LOWER_UP`, which meant the physical connection w
 
 ![Ethernet interface showing LOWER_UP](screenshots/01-ethernet-connection.png)
 
-This screenshot shows that my Raspberry Pi detected a physical Ethernet connection.
 
 However, the Pi wasn't receiving an IPv4 address.
 
