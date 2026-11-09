@@ -85,6 +85,7 @@ I used:
 
 This allowed me to reconnect to my Raspberry Pi without relying on its hostname.
 
+This is a temporary IP while I troubleshoot on how to get DHCP working again!
 ![Raspberry Pi static IP address](screenshots/02-static-ip.png)
 
 
