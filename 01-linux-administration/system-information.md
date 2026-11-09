@@ -11,3 +11,5 @@
 
 ```bash
 hostnamectl
+systemctl
+ 
