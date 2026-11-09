@@ -85,6 +85,8 @@ I used:
 
 This allowed me to reconnect to my Raspberry Pi without relying on its hostname.
 
+![Raspberry Pi static IP address](screenshots/02-static-ip.png)
+
 
 ## 4. Fixing Internet Connection Sharing
 
