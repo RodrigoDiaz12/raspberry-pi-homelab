@@ -71,15 +71,7 @@ arp -a
 
 These commands helped me check the network adapters and devices visible on my network.
 
-## 3. Fixing Internet Connection Sharing
-
-After checking the Windows settings, I discovered that Internet Connection Sharing was also enabled on an extra VirtualBox network adapter.
-
-I disabled sharing on that adapter while keeping my main Wi-Fi and Ethernet sharing settings enabled.
-
-After doing this, my Raspberry Pi was able to access the internet again.
-
-## 4. Setting a Static IP Address
+## 3. Setting a Static IP Address
 
 Because DHCP wasn't working properly, I temporarily assigned my Raspberry Pi a static IP address.
 
@@ -92,6 +84,16 @@ I used:
 - DNS: `1.1.1.1`
 
 This allowed me to reconnect to my Raspberry Pi without relying on its hostname.
+
+
+## 4. Fixing Internet Connection Sharing
+
+After checking the Windows settings, I discovered that Internet Connection Sharing was also enabled on an extra VirtualBox network adapter.
+
+I disabled sharing on that adapter while keeping my main Wi-Fi and Ethernet sharing settings enabled.
+
+After doing this, my Raspberry Pi was able to access the internet again.
+
 
 ## 5. Testing the Connection
 
