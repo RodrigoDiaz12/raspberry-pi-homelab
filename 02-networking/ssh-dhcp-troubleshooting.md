@@ -54,6 +54,13 @@ Things I checked:
 - DHCP Client service was running.
 - Ethernet had the address `192.168.137.1`.
 
+### Screenshot Evidence
+
+![Ethernet interface showing LOWER_UP](screenshots/01-ethernet-connection.png)
+
+This screenshot shows that my Raspberry Pi detected a physical Ethernet connection.
+
+
 I also checked Windows network information using:
 
 ```powershell
