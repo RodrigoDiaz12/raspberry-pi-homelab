@@ -83,6 +83,8 @@ I will document each project with command outputs, screenshots, configurations, 
 ## Repository Structure
 
 ```text
+
+
 raspberry-pi-homelab/
 ├── README.md
 ├── 01-linux-administration/
@@ -93,6 +95,9 @@ raspberry-pi-homelab/
 ├── 03-windows-administration/
 └── 04-cybersecurity/
 
+
+
+```
 ## Documentation
 
 Each project will include:
