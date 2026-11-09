@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project documents troubleshooting a Raspberry Pi 5 that lost SSH connectivity after being installed in its case and reconnected to the home lab network.
+This project documents troubleshooting a Raspberry Pi 5 that lost SSH connectivity.
 
 The Raspberry Pi was connected to a TP-Link Omada ES208G managed switch. My Windows 11 PC provided internet access through Wi-Fi using Internet Connection Sharing (ICS).
 
